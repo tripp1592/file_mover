@@ -1,7 +1,3 @@
-Below is a sample **README.md** you can include in your repository. It explains what the script does, how to build it into an EXE, and how to integrate it into the Windows Explorer right‐click context menu. Feel free to adjust any paths or filenames to match your exact setup.
-
----
-
 # MyFileMover
 
 **MyFileMover** is a simple Python‐based GUI tool that helps you move multiple files to a destination folder. You can launch it by double‐clicking the EXE, or integrate it into the Windows Explorer context menu so it appears when you right‐click a file or folder.
