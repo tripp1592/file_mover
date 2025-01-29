@@ -1,0 +1,16 @@
+Windows Registry Editor Version 5.00
+
+; Right-click on any file -> "MyFileMover"
+; Right-click on any folder -> "MyFileMover"
+
+[HKEY_CLASSES_ROOT\*\shell\MyFileMover]
+@="MyFileMover"
+
+[HKEY_CLASSES_ROOT\*\shell\MyFileMover\command]
+@="\"h:\\documents\\programming\\python_work\\file_mover\\MyFileMover.exe\" \"%1\""
+
+[HKEY_CLASSES_ROOT\Directory\shell\MyFileMover]
+@="MyFileMover"
+
+[HKEY_CLASSES_ROOT\Directory\shell\MyFileMover\command]
+@="\"h:\\documents\\programming\\python_work\\file_mover\\MyFileMover.exe\" \"%1\""
