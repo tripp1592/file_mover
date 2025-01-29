@@ -3,6 +3,7 @@ from tkinter import filedialog, messagebox
 import shutil
 import os
 
+
 def browse_files():
     """
     Allows the user to select multiple files, which are then added to the Listbox.
@@ -11,6 +12,7 @@ def browse_files():
     if filepaths:
         for fp in filepaths:
             file_listbox.insert(tk.END, fp)
+
 
 def remove_selected_files():
     """
@@ -22,6 +24,7 @@ def remove_selected_files():
     for index in reversed(selection):
         file_listbox.delete(index)
 
+
 def browse_destination():
     """
     Lets the user pick a destination folder using a directory chooser.
@@ -29,6 +32,7 @@ def browse_destination():
     folderpath = filedialog.askdirectory(title="Select Destination Folder")
     if folderpath:
         dest_var.set(folderpath)
+
 
 def move_files():
     """
@@ -39,7 +43,7 @@ def move_files():
     if not destination:
         messagebox.showerror("Error", "Please select a destination folder.")
         return
-    
+
     # Get all file paths from the Listbox
     all_files = file_listbox.get(0, tk.END)
     if not all_files:
@@ -47,7 +51,7 @@ def move_files():
         return
 
     failed_moves = []
-    
+
     for src in all_files:
         # Make sure the file still exists before moving
         if not os.path.isfile(src):
@@ -56,14 +60,14 @@ def move_files():
         try:
             filename = os.path.basename(src)
             destination_path = os.path.join(destination, filename)
-            
+
             # Example check: If a file with the same name already exists in destination
             # (You can skip or rename or confirm with the user. Here we overwrite.)
             if os.path.exists(destination_path):
                 # Overwrite or skip—this is your design choice
                 # For now, let's just overwrite:
                 os.remove(destination_path)
-            
+
             shutil.move(src, destination_path)
         except Exception as e:
             # If this file fails, collect error info and move on
@@ -75,10 +79,13 @@ def move_files():
         messagebox.showerror("Some Moves Failed", msg)
     else:
         # If none failed, show success
-        messagebox.showinfo("Success", f"Successfully moved {len(all_files)} file(s) to:\n{destination}")
-    
+        messagebox.showinfo(
+            "Success", f"Successfully moved {len(all_files)} file(s) to:\n{destination}"
+        )
+
     # Clear the Listbox after attempts
     file_listbox.delete(0, tk.END)
+
 
 # --- GUI Setup ---
 root = tk.Tk()
@@ -94,4 +101,4 @@ file_listbox = tk.Listbox(file_frame, width=60, height=8, selectmode=tk.MULTIPLE
 file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 # Scrollbar for the Listbox
-scrollbar = tk.Scrollbar(file_frame, orient=tk.VERTICAL, command=file
+scrollbar = tk.Scrollbar(file_frame, orient=tk.VERTICAL, command=file)
