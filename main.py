@@ -101,4 +101,34 @@ file_listbox = tk.Listbox(file_frame, width=60, height=8, selectmode=tk.MULTIPLE
 file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
 # Scrollbar for the Listbox
-scrollbar = tk.Scrollbar(file_frame, orient=tk.VERTICAL, command=file)
+scrollbar = tk.Scrollbar(file_frame, orient=tk.VERTICAL, command=file_listbox.yview)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+file_listbox.config(yscrollcommand=scrollbar.set)
+
+# Button to browse for files
+browse_button = tk.Button(root, text="Add Files...", command=browse_files)
+browse_button.grid(row=1, column=0, padx=10, pady=5, sticky="w")
+
+# Button to remove selected files from the list
+remove_button = tk.Button(root, text="Remove Selected", command=remove_selected_files)
+remove_button.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+
+# Destination folder section
+dest_frame = tk.Frame(root)
+dest_frame.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
+
+dest_var = tk.StringVar()
+dest_label = tk.Label(dest_frame, text="Destination Folder:")
+dest_label.pack(side=tk.LEFT)
+
+dest_entry = tk.Entry(dest_frame, textvariable=dest_var, width=40)
+dest_entry.pack(side=tk.LEFT, padx=5)
+
+browse_dest_button = tk.Button(dest_frame, text="Browse...", command=browse_destination)
+browse_dest_button.pack(side=tk.LEFT)
+
+# Button to move all files
+move_button = tk.Button(root, text="Move Files", command=move_files, width=20)
+move_button.grid(row=4, column=0, pady=10)
+
+root.mainloop()
