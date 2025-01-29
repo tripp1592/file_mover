@@ -7,10 +7,11 @@ Windows Registry Editor Version 5.00
 @="MyFileMover"
 
 [HKEY_CLASSES_ROOT\*\shell\MyFileMover\command]
-@="\"h:\\documents\\programming\\python_work\\file_mover\\MyFileMover.exe\" \"%1\""
+@="\"h:\\documents\\programming\\python_work\\file_mover\\dist\\MyFileMover.exe\" \"%1\""
 
 [HKEY_CLASSES_ROOT\Directory\shell\MyFileMover]
 @="MyFileMover"
 
 [HKEY_CLASSES_ROOT\Directory\shell\MyFileMover\command]
-@="\"h:\\documents\\programming\\python_work\\file_mover\\MyFileMover.exe\" \"%1\""
+@="\"h:\\documents\\programming\\python_work\\file_mover\\dist\\MyFileMover.exe\" \"%1\""
+
