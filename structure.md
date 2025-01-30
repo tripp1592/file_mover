@@ -18,5 +18,7 @@
 ├── dist/
 │   ├── MyFileMover.exe
 │   └── addMyFileMover.reg
-└── main.py
+├── gui.py
+├── main.py
+└── structure.md
 ```

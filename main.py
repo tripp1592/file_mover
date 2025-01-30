@@ -17,7 +17,7 @@ def compute_md5(filepath):
             for chunk in iter(lambda: f.read(4096), b""):
                 md5_obj.update(chunk)
         return md5_obj.hexdigest()
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -26,7 +26,9 @@ def move_file_with_md5(src, dst):
     Move a single file from src to dst, verifying MD5 before/after.
     Also handles filename collisions:
       - If file already exists at dst, ask user: Overwrite or Rename?
-    Returns None if success, or an error string if something went wrong.
+
+    Returns:
+      None if success, or an error string if something went wrong.
     """
     # 1) Check source MD5
     src_hash = compute_md5(src)
@@ -57,7 +59,7 @@ def move_file_with_md5(src, dst):
                 return f"User skipped renaming for {src}"
             dst = os.path.join(os.path.dirname(dst), new_name)
             if os.path.exists(dst):
-                # If the new name also exists, we can prompt again or skip
+                # If the new name also exists, skip or prompt again
                 return f"Renamed destination also exists! Skipping: {dst}"
 
     # 3) Perform the move
@@ -122,6 +124,7 @@ def move_files():
             "Success",
             f"All files moved successfully and passed MD5 checks.\nDestination: {destination}",
         )
+
     # Clear the list after attempts
     file_listbox.delete(0, tk.END)
 
@@ -154,45 +157,46 @@ def browse_destination():
         dest_var.set(folderpath)
 
 
-# -------------------- Build the GUI --------------------
-root = tk.Tk()
-root.title("Multiple File Mover (MD5 + Overwrite/Rename)")
-root.resizable(False, False)
-
-file_frame = tk.LabelFrame(root, text="Source Files", padx=5, pady=5)
-file_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-
-file_listbox = tk.Listbox(file_frame, width=60, height=8, selectmode=tk.MULTIPLE)
-file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-scrollbar = tk.Scrollbar(file_frame, orient=tk.VERTICAL, command=file_listbox.yview)
-scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-file_listbox.config(yscrollcommand=scrollbar.set)
-
-browse_button = tk.Button(root, text="Add Files...", command=browse_files)
-browse_button.grid(row=1, column=0, padx=10, pady=5, sticky="w")
-
-remove_button = tk.Button(root, text="Remove Selected", command=remove_selected_files)
-remove_button.grid(row=2, column=0, padx=10, pady=5, sticky="w")
-
-dest_frame = tk.Frame(root)
-dest_frame.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
-
-dest_var = tk.StringVar()
-dest_label = tk.Label(dest_frame, text="Destination Folder:")
-dest_label.pack(side=tk.LEFT)
-
-dest_entry = tk.Entry(dest_frame, textvariable=dest_var, width=40)
-dest_entry.pack(side=tk.LEFT, padx=5)
-
-browse_dest_button = tk.Button(dest_frame, text="Browse...", command=browse_destination)
-browse_dest_button.pack(side=tk.LEFT)
-
-move_button = tk.Button(root, text="Move Files", command=move_files, width=20)
-move_button.grid(row=4, column=0, pady=10)
-
-root.mainloop()
-
-
+# -------------------- MAIN GUI Setup --------------------
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    root.title("My File Mover")
+    root.resizable(False, False)
+
+    file_frame = tk.LabelFrame(root, text="Source Files", padx=5, pady=5)
+    file_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+    file_listbox = tk.Listbox(file_frame, width=60, height=8, selectmode=tk.MULTIPLE)
+    file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar = tk.Scrollbar(file_frame, orient=tk.VERTICAL, command=file_listbox.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    file_listbox.config(yscrollcommand=scrollbar.set)
+
+    browse_button = tk.Button(root, text="Add Files...", command=browse_files)
+    browse_button.grid(row=1, column=0, padx=10, pady=5, sticky="w")
+
+    remove_button = tk.Button(
+        root, text="Remove Selected", command=remove_selected_files
+    )
+    remove_button.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+
+    dest_frame = tk.Frame(root)
+    dest_frame.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
+
+    dest_var = tk.StringVar()
+    dest_label = tk.Label(dest_frame, text="Destination Folder:")
+    dest_label.pack(side=tk.LEFT)
+
+    dest_entry = tk.Entry(dest_frame, textvariable=dest_var, width=40)
+    dest_entry.pack(side=tk.LEFT, padx=5)
+
+    browse_dest_button = tk.Button(
+        dest_frame, text="Browse...", command=browse_destination
+    )
+    browse_dest_button.pack(side=tk.LEFT)
+
+    move_button = tk.Button(root, text="Move Files", command=move_files, width=20)
+    move_button.grid(row=4, column=0, pady=10)
+
+    root.mainloop()
