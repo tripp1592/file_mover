@@ -1,3 +1,2 @@
-[x] implement hash checking
-
-
+- [x] implement hash checking 
+- [ ] 
