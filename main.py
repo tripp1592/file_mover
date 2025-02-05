@@ -1,6 +1,5 @@
-import os
-import sys
 import hashlib
+import os
 import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog
@@ -152,9 +151,9 @@ def browse_destination():
     """
     Lets the user pick a destination folder using a directory chooser.
     """
-    folderpath = filedialog.askdirectory(title="Select Destination Folder")
-    if folderpath:
-        dest_var.set(folderpath)
+    folder_path = filedialog.askdirectory(title="Select Destination Folder")
+    if folder_path:
+        dest_var.set(folder_path)
 
 
 # -------------------- MAIN GUI Setup --------------------
