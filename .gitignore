@@ -1,6 +1,8 @@
 # directories
 /build/**
 /__pycache__/**
+.idea/
+
 
 # file types
 *.spec

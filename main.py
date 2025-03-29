@@ -2,8 +2,46 @@ import hashlib
 import os
 import shutil
 import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog
+from tkinter import filedialog, messagebox, simpledialog, ttk
+import json
+from pathlib import Path
 
+# Constants
+RECENT_DESTINATIONS_FILE = "recent_destinations.json"
+MAX_RECENT_DESTINATIONS = 5
+
+def load_recent_destinations():
+    """Load recently used destination folders from JSON file."""
+    try:
+        if os.path.exists(RECENT_DESTINATIONS_FILE):
+            with open(RECENT_DESTINATIONS_FILE, 'r') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return []
+
+def save_recent_destinations(destinations):
+    """Save recently used destination folders to JSON file."""
+    try:
+        with open(RECENT_DESTINATIONS_FILE, 'w') as f:
+            json.dump(destinations, f)
+    except Exception:
+        pass
+
+def get_free_space(path):
+    """Get free space in bytes for the given path."""
+    try:
+        return shutil.disk_usage(path).free
+    except Exception:
+        return 0
+
+def format_size(size_bytes):
+    """Format size in bytes to human readable string."""
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size_bytes < 1024:
+            return f"{size_bytes:.2f} {unit}"
+        size_bytes /= 1024
+    return f"{size_bytes:.2f} PB"
 
 def compute_md5(filepath):
     """
@@ -100,28 +138,68 @@ def move_files():
         messagebox.showerror("Error", "No files selected to move.")
         return
 
+    # Check total size of files to move
+    total_size = sum(os.path.getsize(f) for f in all_files if os.path.isfile(f))
+    free_space = get_free_space(destination)
+    
+    if total_size > free_space:
+        msg = (f"Not enough free space in destination folder.\n"
+               f"Required: {format_size(total_size)}\n"
+               f"Available: {format_size(free_space)}")
+        messagebox.showerror("Error", msg)
+        return
+
+    # Create progress window
+    progress_window = tk.Toplevel(root)
+    progress_window.title("Moving Files")
+    progress_window.transient(root)
+    progress_window.grab_set()
+    
+    progress_var = tk.DoubleVar()
+    progress_bar = ttk.Progressbar(
+        progress_window, 
+        variable=progress_var,
+        maximum=len(all_files)
+    )
+    progress_bar.pack(padx=10, pady=10, fill=tk.X)
+    
+    status_label = tk.Label(progress_window, text="")
+    status_label.pack(pady=5)
+
     failed_moves = []
-    for src in all_files:
+    for i, src in enumerate(all_files):
         if not os.path.isfile(src):
             failed_moves.append(f"(Missing file) {src}")
             continue
 
         filename = os.path.basename(src)
         dst_path = os.path.join(destination, filename)
+        
+        status_label.config(text=f"Moving: {filename}")
+        progress_var.set(i)
+        progress_window.update()
 
         error = move_file_with_md5(src, dst_path)
         if error:
             failed_moves.append(error)
 
+    progress_window.destroy()
+
     if failed_moves:
-        msg = "Some files could not be moved or had errors:\n\n" + "\n\n".join(
-            failed_moves
-        )
+        msg = "Some files could not be moved or had errors:\n\n" + "\n\n".join(failed_moves)
         messagebox.showerror("Move Errors", msg)
     else:
+        # Update recent destinations
+        recent = load_recent_destinations()
+        if destination in recent:
+            recent.remove(destination)
+        recent.insert(0, destination)
+        recent = recent[:MAX_RECENT_DESTINATIONS]
+        save_recent_destinations(recent)
+        
         messagebox.showinfo(
             "Success",
-            f"All files moved successfully and passed MD5 checks.\nDestination: {destination}",
+            f"All files moved successfully and passed MD5 checks.\nDestination: {destination}"
         )
 
     # Clear the list after attempts
@@ -172,11 +250,11 @@ if __name__ == "__main__":
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     file_listbox.config(yscrollcommand=scrollbar.set)
 
-    browse_button = tk.Button(root, text="Add Files...", command=browse_files)
+    browse_button = tk.Button(root, text="Add Files... (Ctrl+O)", command=browse_files)
     browse_button.grid(row=1, column=0, padx=10, pady=5, sticky="w")
 
     remove_button = tk.Button(
-        root, text="Remove Selected", command=remove_selected_files
+        root, text="Remove Selected (Del)", command=remove_selected_files
     )
     remove_button.grid(row=2, column=0, padx=10, pady=5, sticky="w")
 
@@ -195,7 +273,23 @@ if __name__ == "__main__":
     )
     browse_dest_button.pack(side=tk.LEFT)
 
-    move_button = tk.Button(root, text="Move Files", command=move_files, width=20)
+    # Add recent destinations menu
+    recent_menu = tk.Menubutton(dest_frame, text="Recent")
+    recent_menu.pack(side=tk.LEFT, padx=5)
+    recent_menu.menu = tk.Menu(recent_menu, tearoff=0)
+    recent_menu["menu"] = recent_menu.menu
+
+    def update_recent_menu():
+        recent_menu.menu.delete(0, tk.END)
+        for dest in load_recent_destinations():
+            recent_menu.menu.add_command(
+                label=dest,
+                command=lambda d=dest: dest_var.set(d)
+            )
+
+    update_recent_menu()
+
+    move_button = tk.Button(root, text="Move Files (Ctrl+M)", command=move_files, width=20)
     move_button.grid(row=4, column=0, pady=10)
 
     root.mainloop()
