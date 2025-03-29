@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
 import json
 from pathlib import Path
+import sys
 
 # Constants
 RECENT_DESTINATIONS_FILE = "recent_destinations.json"
@@ -239,6 +240,18 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("My File Mover")
     root.resizable(False, False)
+
+    # Handle command line arguments (files from context menu)
+    if len(sys.argv) > 1:
+        # Bring window to front
+        root.lift()
+        root.attributes('-topmost', True)
+        root.after_idle(root.attributes, '-topmost', False)
+        
+        # Add files from command line
+        for filepath in sys.argv[1:]:
+            if os.path.isfile(filepath):
+                file_listbox.insert(tk.END, filepath)
 
     file_frame = tk.LabelFrame(root, text="Source Files", padx=5, pady=5)
     file_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
