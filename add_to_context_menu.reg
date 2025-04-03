@@ -1,0 +1,25 @@
+Windows Registry Editor Version 5.00
+
+; Add to file context menu
+[HKEY_CLASSES_ROOT\*\shell\FileMover]
+@="Move with File Mover"
+"Icon"="%SystemRoot%\\System32\\shell32.dll,45"
+
+[HKEY_CLASSES_ROOT\*\shell\FileMover\command]
+@="\"H:\\documents\\programming\\python_work\\file_mover\\dist\\MyFileMover.exe\" \"%1\""
+
+; Add to folder context menu
+[HKEY_CLASSES_ROOT\Directory\shell\FileMover]
+@="Move with File Mover"
+"Icon"="%SystemRoot%\\System32\\shell32.dll,45"
+
+[HKEY_CLASSES_ROOT\Directory\shell\FileMover\command]
+@="\"H:\\documents\\programming\\python_work\\file_mover\\dist\\MyFileMover.exe\" \"%1\""
+
+; Add to background context menu (for multiple selection)
+[HKEY_CLASSES_ROOT\Directory\Background\shell\FileMover]
+@="Move with File Mover"
+"Icon"="%SystemRoot%\\System32\\shell32.dll,45"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\FileMover\command]
+@="\"H:\\documents\\programming\\python_work\\file_mover\\dist\\MyFileMover.exe\" \"%V\"" 

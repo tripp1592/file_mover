@@ -1,0 +1,14 @@
+Windows Registry Editor Version 5.00
+
+; Remove from HKEY_LOCAL_MACHINE
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\*\shell\MoveWithFileMover]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\background\shell\FileMover]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\FileMover]
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Directory\shell\MoveWithFileMover]
+
+; Remove from HKEY_CLASSES_ROOT (for completeness)
+[-HKEY_CLASSES_ROOT\*\shell\FileMover]
+[-HKEY_CLASSES_ROOT\*\shell\MoveWithFileMover]
+[-HKEY_CLASSES_ROOT\Directory\shell\FileMover]
+[-HKEY_CLASSES_ROOT\Directory\shell\MoveWithFileMover]
+[-HKEY_CLASSES_ROOT\Directory\Background\shell\FileMover] 

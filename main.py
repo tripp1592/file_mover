@@ -6,28 +6,35 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 import json
 from pathlib import Path
 import sys
+import tempfile
+import time
 
 # Constants
 RECENT_DESTINATIONS_FILE = "recent_destinations.json"
 MAX_RECENT_DESTINATIONS = 5
+LOCK_FILE = os.path.join(tempfile.gettempdir(), "myfilemover.lock")
+COMMAND_FILE = os.path.join(tempfile.gettempdir(), "myfilemover_command.txt")
+
 
 def load_recent_destinations():
     """Load recently used destination folders from JSON file."""
     try:
         if os.path.exists(RECENT_DESTINATIONS_FILE):
-            with open(RECENT_DESTINATIONS_FILE, 'r') as f:
+            with open(RECENT_DESTINATIONS_FILE, "r") as f:
                 return json.load(f)
     except Exception:
         pass
     return []
 
+
 def save_recent_destinations(destinations):
     """Save recently used destination folders to JSON file."""
     try:
-        with open(RECENT_DESTINATIONS_FILE, 'w') as f:
+        with open(RECENT_DESTINATIONS_FILE, "w") as f:
             json.dump(destinations, f)
     except Exception:
         pass
+
 
 def get_free_space(path):
     """Get free space in bytes for the given path."""
@@ -36,13 +43,15 @@ def get_free_space(path):
     except Exception:
         return 0
 
+
 def format_size(size_bytes):
     """Format size in bytes to human readable string."""
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
         if size_bytes < 1024:
             return f"{size_bytes:.2f} {unit}"
         size_bytes /= 1024
     return f"{size_bytes:.2f} PB"
+
 
 def compute_md5(filepath):
     """
@@ -142,11 +151,13 @@ def move_files():
     # Check total size of files to move
     total_size = sum(os.path.getsize(f) for f in all_files if os.path.isfile(f))
     free_space = get_free_space(destination)
-    
+
     if total_size > free_space:
-        msg = (f"Not enough free space in destination folder.\n"
-               f"Required: {format_size(total_size)}\n"
-               f"Available: {format_size(free_space)}")
+        msg = (
+            f"Not enough free space in destination folder.\n"
+            f"Required: {format_size(total_size)}\n"
+            f"Available: {format_size(free_space)}"
+        )
         messagebox.showerror("Error", msg)
         return
 
@@ -155,15 +166,13 @@ def move_files():
     progress_window.title("Moving Files")
     progress_window.transient(root)
     progress_window.grab_set()
-    
+
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(
-        progress_window, 
-        variable=progress_var,
-        maximum=len(all_files)
+        progress_window, variable=progress_var, maximum=len(all_files)
     )
     progress_bar.pack(padx=10, pady=10, fill=tk.X)
-    
+
     status_label = tk.Label(progress_window, text="")
     status_label.pack(pady=5)
 
@@ -175,7 +184,7 @@ def move_files():
 
         filename = os.path.basename(src)
         dst_path = os.path.join(destination, filename)
-        
+
         status_label.config(text=f"Moving: {filename}")
         progress_var.set(i)
         progress_window.update()
@@ -187,7 +196,9 @@ def move_files():
     progress_window.destroy()
 
     if failed_moves:
-        msg = "Some files could not be moved or had errors:\n\n" + "\n\n".join(failed_moves)
+        msg = "Some files could not be moved or had errors:\n\n" + "\n\n".join(
+            failed_moves
+        )
         messagebox.showerror("Move Errors", msg)
     else:
         # Update recent destinations
@@ -197,10 +208,10 @@ def move_files():
         recent.insert(0, destination)
         recent = recent[:MAX_RECENT_DESTINATIONS]
         save_recent_destinations(recent)
-        
+
         messagebox.showinfo(
             "Success",
-            f"All files moved successfully and passed MD5 checks.\nDestination: {destination}"
+            f"All files moved successfully and passed MD5 checks.\nDestination: {destination}",
         )
 
     # Clear the list after attempts
@@ -235,31 +246,97 @@ def browse_destination():
         dest_var.set(folder_path)
 
 
+def is_instance_running():
+    """Check if another instance is running by trying to create/acquire a lock file."""
+    try:
+        if os.path.exists(LOCK_FILE):
+            # Check if the process is actually running or if the lock file is stale
+            lock_age = time.time() - os.path.getmtime(LOCK_FILE)
+            if lock_age < 60:  # Consider lock files older than 60 seconds as stale
+                return True
+            os.remove(LOCK_FILE)
+
+        with open(LOCK_FILE, "w") as f:
+            f.write(str(os.getpid()))
+        return False
+    except:
+        return True
+
+
+def send_files_to_running_instance(files):
+    """Send files to an already running instance."""
+    try:
+        with open(COMMAND_FILE, "w") as f:
+            json.dump(files, f)
+        return True
+    except:
+        return False
+
+
+def check_for_new_files():
+    """Check if new files have been sent from another instance."""
+    try:
+        if os.path.exists(COMMAND_FILE):
+            with open(COMMAND_FILE, "r") as f:
+                files = json.load(f)
+            os.remove(COMMAND_FILE)
+
+            for filepath in files:
+                filepath = filepath.strip('"')
+                if os.path.isfile(filepath):
+                    file_listbox.insert(tk.END, filepath)
+                elif os.path.isdir(filepath):
+                    for root_dir, _, files in os.walk(filepath):
+                        for file in files:
+                            full_path = os.path.join(root_dir, file)
+                            if os.path.isfile(full_path):
+                                file_listbox.insert(tk.END, full_path)
+
+            # Bring window to front
+            root.lift()
+            root.attributes("-topmost", True)
+            root.after_idle(root.attributes, "-topmost", False)
+    except:
+        pass
+    finally:
+        # Check again after 1 second
+        root.after(1000, check_for_new_files)
+
+
+def cleanup_on_exit():
+    """Clean up lock file when the program exits."""
+    try:
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
+    except:
+        pass
+    root.destroy()
+
+
 # -------------------- MAIN GUI Setup --------------------
 if __name__ == "__main__":
+    # Check if another instance is running
+    if len(sys.argv) > 1 and is_instance_running():
+        # If running and we have files to add, send them to the running instance
+        if send_files_to_running_instance(sys.argv[1:]):
+            sys.exit(0)
+
     root = tk.Tk()
     root.title("My File Mover")
     root.resizable(False, False)
+
+    # Set up file checking timer
+    root.after(1000, check_for_new_files)
+
+    # Set up cleanup on exit
+    root.protocol("WM_DELETE_WINDOW", cleanup_on_exit)
 
     # Handle command line arguments (files from context menu)
     if len(sys.argv) > 1:
         # Bring window to front
         root.lift()
-        root.attributes('-topmost', True)
-        root.after_idle(root.attributes, '-topmost', False)
-        
-        # Add files from command line
-        for filepath in sys.argv[1:]:
-            # Handle quoted paths
-            filepath = filepath.strip('"')
-            if os.path.isfile(filepath):
-                file_listbox.insert(tk.END, filepath)
-            elif os.path.isdir(filepath):
-                # If it's a directory, add all files in it
-                for root_dir, _, files in os.walk(filepath):
-                    for file in files:
-                        full_path = os.path.join(root_dir, file)
-                        file_listbox.insert(tk.END, full_path)
+        root.attributes("-topmost", True)
+        root.after_idle(root.attributes, "-topmost", False)
 
     file_frame = tk.LabelFrame(root, text="Source Files", padx=5, pady=5)
     file_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -270,6 +347,21 @@ if __name__ == "__main__":
     scrollbar = tk.Scrollbar(file_frame, orient=tk.VERTICAL, command=file_listbox.yview)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     file_listbox.config(yscrollcommand=scrollbar.set)
+
+    # Add files from command line after listbox is created
+    if len(sys.argv) > 1:
+        for filepath in sys.argv[1:]:
+            # Handle quoted paths
+            filepath = filepath.strip('"')
+            if os.path.isfile(filepath):
+                file_listbox.insert(tk.END, filepath)
+            elif os.path.isdir(filepath):
+                # If it's a directory, add all files in it
+                for root_dir, _, files in os.walk(filepath):
+                    for file in files:
+                        full_path = os.path.join(root_dir, file)
+                        if os.path.isfile(full_path):  # Only add if it's a file
+                            file_listbox.insert(tk.END, full_path)
 
     browse_button = tk.Button(root, text="Add Files... (Ctrl+O)", command=browse_files)
     browse_button.grid(row=1, column=0, padx=10, pady=5, sticky="w")
@@ -297,20 +389,19 @@ if __name__ == "__main__":
     # Add recent destinations menu
     recent_menu = tk.Menubutton(dest_frame, text="Recent")
     recent_menu.pack(side=tk.LEFT, padx=5)
-    recent_menu.menu = tk.Menu(recent_menu, tearoff=0)
-    recent_menu["menu"] = recent_menu.menu
+    menu = tk.Menu(recent_menu, tearoff=0)
+    recent_menu["menu"] = menu
 
     def update_recent_menu():
-        recent_menu.menu.delete(0, tk.END)
+        menu.delete(0, tk.END)
         for dest in load_recent_destinations():
-            recent_menu.menu.add_command(
-                label=dest,
-                command=lambda d=dest: dest_var.set(d)
-            )
+            menu.add_command(label=dest, command=lambda d=dest: dest_var.set(d))
 
     update_recent_menu()
 
-    move_button = tk.Button(root, text="Move Files (Ctrl+M)", command=move_files, width=20)
+    move_button = tk.Button(
+        root, text="Move Files (Ctrl+M)", command=move_files, width=20
+    )
     move_button.grid(row=4, column=0, pady=10)
 
     root.mainloop()

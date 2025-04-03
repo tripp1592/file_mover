@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Logging
+
+- use python logging module and standard logging principles to log programs
+- use logging if at all possible if any benefit could come from it
+- create a logs directory if one is not already there to post .log files to

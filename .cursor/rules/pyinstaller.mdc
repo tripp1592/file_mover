@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# pyinstaller
+
+- use this format for making exe files:
+- uv tool run pyinstaller --paths=.venv/Lib/site-packages --onefile --windowed --name AppName fileName.py
+
+
+- 
