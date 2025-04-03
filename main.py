@@ -250,8 +250,16 @@ if __name__ == "__main__":
         
         # Add files from command line
         for filepath in sys.argv[1:]:
+            # Handle quoted paths
+            filepath = filepath.strip('"')
             if os.path.isfile(filepath):
                 file_listbox.insert(tk.END, filepath)
+            elif os.path.isdir(filepath):
+                # If it's a directory, add all files in it
+                for root_dir, _, files in os.walk(filepath):
+                    for file in files:
+                        full_path = os.path.join(root_dir, file)
+                        file_listbox.insert(tk.END, full_path)
 
     file_frame = tk.LabelFrame(root, text="Source Files", padx=5, pady=5)
     file_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")

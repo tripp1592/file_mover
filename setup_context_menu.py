@@ -26,7 +26,7 @@ def add_context_menu():
             winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, r"%SystemRoot%\System32\shell32.dll,145")
 
         with winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, r"*\shell\MoveWithFileMover\command") as key:
-            winreg.SetValue(key, "", winreg.REG_SZ, f'"{exe_path}" "%L"')
+            winreg.SetValue(key, "", winreg.REG_SZ, f'"{exe_path}" "%V"')
 
         # For directories
         with winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, r"Directory\shell\MoveWithFileMover") as key:
@@ -34,7 +34,7 @@ def add_context_menu():
             winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, r"%SystemRoot%\System32\shell32.dll,145")
 
         with winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, r"Directory\shell\MoveWithFileMover\command") as key:
-            winreg.SetValue(key, "", winreg.REG_SZ, f'"{exe_path}" "%L"')
+            winreg.SetValue(key, "", winreg.REG_SZ, f'"{exe_path}" "%V"')
 
         print("Context menu integration added successfully!")
     except Exception as e:
