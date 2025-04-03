@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Terminal Input Commands
+
+Terminal Command Rules:
+for any thing you want me to type into a terminal (git, commands, etc) just send to me in text format
+1. Never attempt to execute commands directly
+2. Always provide commands as plain text in a code block
+5. Do not ask for permission to run commands
+6. Do not apologize for not running commands
